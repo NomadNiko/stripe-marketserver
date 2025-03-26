@@ -69,6 +69,14 @@ export class User {
   })
   status?: Status;
 
+  @ApiProperty({
+    type: [String],
+    description: 'IDs of businesses the user has access to',
+    required: false,
+  })
+  @Expose({ groups: ['me', 'admin'] })
+  businessIds?: string[];
+
   @ApiProperty()
   createdAt: Date;
 

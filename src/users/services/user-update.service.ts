@@ -134,4 +134,31 @@ export class UserUpdateService {
       socialId: updateUserDto.socialId,
     });
   }
+
+  async addBusinessId(
+    id: User['id'],
+    businessId: string,
+  ): Promise<User | null> {
+    const user = await this.usersRepository.findById(id);
+    if (!user) {
+      return null;
+    }
+    const businessIds = user.businessIds || [];
+    if (!businessIds.includes(businessId)) {
+      businessIds.push(businessId);
+    }
+    return this.usersRepository.update(id, { businessIds });
+  }
+
+  async removeBusinessId(
+    id: User['id'],
+    businessId: string,
+  ): Promise<User | null> {
+    const user = await this.usersRepository.findById(id);
+    if (!user || !user.businessIds) {
+      return null;
+    }
+    const businessIds = user.businessIds.filter((id) => id !== businessId);
+    return this.usersRepository.update(id, { businessIds });
+  }
 }

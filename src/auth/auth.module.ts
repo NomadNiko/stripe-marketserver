@@ -15,6 +15,9 @@ import { PasswordService } from './services/password.service';
 import { UserProfileService } from './services/user-profile.service';
 import { TokenService } from './services/token.service';
 import { LoginService } from './services/login.service';
+import { BusinessRegistrationService } from './services/business-registration.service';
+import { BusinessAuthController } from './business-auth.controller';
+import { BusinessModule } from 'src/business/business.module';
 
 @Module({
   imports: [
@@ -23,9 +26,10 @@ import { LoginService } from './services/login.service';
     PassportModule,
     MailModule,
     JwtModule.register({}),
+    BusinessModule,
   ],
 
-  controllers: [AuthController],
+  controllers: [AuthController, BusinessAuthController],
 
   providers: [
     AuthService,
@@ -38,6 +42,7 @@ import { LoginService } from './services/login.service';
     UserProfileService,
     TokenService,
     LoginService,
+    BusinessRegistrationService,
   ],
 
   exports: [AuthService],
