@@ -86,21 +86,34 @@ export class StripeConnectService {
   }
 
   async createAccountSession(accountId: string) {
-    this.logger.log(`Creating account session for: ${accountId}`);
-    // Create a more persistent session with broader component access
-    return this.stripe.accountSessions.create({
-      account: accountId,
-      components: {
-        account_onboarding: { enabled: true },
-        // Enable additional components for a more complete experience
-        payments: { enabled: true },
-        payouts: { enabled: true },
-      },
-      // Expand returned objects for more detailed information
-      expand: ['account'],
-    });
+    try {
+      // Ensure accountId is a string
+      if (typeof accountId !== 'string') {
+        this.logger.error(`Invalid accountId type: ${typeof accountId}`);
+        throw new Error('accountId must be a string');
+      }
+      
+      // FIXED: Removed the expand parameter that was causing the error
+      const session = await this.stripe.accountSessions.create({
+        account: accountId,
+        components: {
+          account_onboarding: {
+            enabled: true,
+          },
+        },
+        // Remove the expand parameter that was causing the error
+      });
+      
+      return { clientSecret: session.client_secret };
+    } catch (error) {
+      this.logger.error(
+        `Error creating account session: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
   }
-
+  
   async getAccountDetails(accountId: string) {
     this.logger.log(`Retrieving account details for: ${accountId}`);
     // Retrieve account with expanded details for better status information

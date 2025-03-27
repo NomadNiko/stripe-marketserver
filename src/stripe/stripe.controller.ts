@@ -15,7 +15,10 @@ interface RawBodyRequest extends Request {
 }
 
 @ApiTags('Stripe')
-@Controller('stripe')
+@Controller({
+  path: 'stripe',
+  version: '1', // Add versioning
+})
 @Injectable()
 export class StripeController {
   private readonly logger = new Logger(StripeController.name);

@@ -20,7 +20,10 @@ import { StripeBalanceResponseDto } from './dto/stripe-balance.dto';
 import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Stripe Connect')
-@Controller('stripe-connect')
+@Controller({
+  path: 'stripe-connect',
+  version: '1', // Add versioning
+})
 export class StripeConnectController {
   private readonly logger = new Logger(StripeConnectController.name);
 
@@ -96,7 +99,8 @@ export class StripeConnectController {
       const accountSession =
         await this.stripeConnectService.createAccountSession(body.accountId);
       return {
-        client_secret: accountSession.client_secret,
+        // Change this line to use clientSecret instead of client_secret
+        clientSecret: accountSession.clientSecret,
       };
     } catch (error) {
       this.logger.error(
@@ -106,7 +110,6 @@ export class StripeConnectController {
       throw error;
     }
   }
-
   @Post('update-business/:businessId')
   @ApiOperation({ summary: 'Update business with Stripe account details' })
   @UseGuards(AuthGuard('jwt'))
