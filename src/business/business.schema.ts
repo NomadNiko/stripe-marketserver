@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument, now } from 'mongoose';
-import { FileSchemaClass } from '../files/infrastructure/persistence/document/entities/file.schema';
+import mongoose, { now, HydratedDocument } from 'mongoose';
 import { EntityDocumentHelper } from '../utils/document-entity-helper';
+import { FileSchemaClass } from '../files/infrastructure/persistence/document/entities/file.schema';
 
 export type BusinessSchemaDocument = HydratedDocument<BusinessSchemaClass>;
 
@@ -42,6 +42,11 @@ export class BusinessSchemaClass extends EntityDocumentHelper {
   stripeAccountId?: string;
 
   @Prop({
+    type: String,
+  })
+  stripeConnectId?: string;
+
+  @Prop({
     type: Object,
     default: {
       onboardingComplete: false,
@@ -59,7 +64,16 @@ export class BusinessSchemaClass extends EntityDocumentHelper {
     chargesEnabled: boolean;
     payoutsEnabled: boolean;
     requirementsDisabled: boolean;
+    currentlyDue?: string[];
+    eventuallyDue?: string[];
+    pastDue?: string[];
   };
+
+  @Prop({
+    type: Boolean,
+    default: false,
+  })
+  isStripeSetupComplete: boolean;
 
   @Prop({
     type: [String],
@@ -101,6 +115,7 @@ export const BusinessSchema = SchemaFactory.createForClass(BusinessSchemaClass);
 // Create indexes
 BusinessSchema.index({ displayName: 1 }, { unique: true });
 BusinessSchema.index({ stripeAccountId: 1 }, { sparse: true });
+BusinessSchema.index({ stripeConnectId: 1 }, { sparse: true });
 BusinessSchema.index({ owners: 1 });
 BusinessSchema.index({ primaryOwner: 1 });
 BusinessSchema.index({ active: 1 });

@@ -59,6 +59,7 @@ export class BusinessController {
     if (limit > 50) {
       limit = 50;
     }
+
     return infinityPagination(
       await this.businessService.findManyWithPagination({
         filterOptions: query,
@@ -87,9 +88,11 @@ export class BusinessController {
   @HttpCode(HttpStatus.OK)
   async findOne(@Param('id') id: string, @Request() req) {
     const business = await this.businessService.findById(id);
+
     // Check if the user is an admin or owns the business
-    const isAdmin = req.user.role?.id === RoleEnum.admin;
-    const isOwner = business?.owners.includes(req.user.id);
+    const isAdmin = String(req.user.role?.id) === String(RoleEnum.admin);
+    const isOwner = business?.owners.includes(String(req.user.id));
+
     if (!isAdmin && !isOwner) {
       // For non-owners, remove sensitive information
       if (business) {
@@ -100,71 +103,8 @@ export class BusinessController {
         return businessCopy;
       }
     }
+
     return business;
-  }
-
-  @ApiOperation({ summary: 'Update business' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Business updated',
-    type: Business,
-  })
-  @ApiParam({ name: 'id', description: 'Business ID' })
-  @ApiBearerAuth()
-  @SerializeOptions({
-    groups: ['admin', 'business'],
-  })
-  @UseGuards(AuthGuard('jwt'))
-  @Patch(':id')
-  @HttpCode(HttpStatus.OK)
-  async update(
-    @Param('id') id: string,
-    @Body() updateBusinessDto: UpdateBusinessDto,
-    @Request() req,
-  ) {
-    const business = await this.businessService.findById(id);
-    // Check if the user is an admin or owns the business
-    const isAdmin = req.user.role?.id === RoleEnum.admin;
-    const isOwner = business?.owners.includes(req.user.id);
-    if (!isAdmin && !isOwner) {
-      return {
-        statusCode: HttpStatus.FORBIDDEN,
-        message: 'You do not have permission to update this business',
-      };
-    }
-    return this.businessService.update(id, updateBusinessDto);
-  }
-
-  @ApiOperation({ summary: 'Add owner to business' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Owner added to business',
-    type: Business,
-  })
-  @ApiParam({ name: 'id', description: 'Business ID' })
-  @ApiBearerAuth()
-  @SerializeOptions({
-    groups: ['admin', 'business'],
-  })
-  @UseGuards(AuthGuard('jwt'))
-  @Post(':id/owners')
-  @HttpCode(HttpStatus.OK)
-  async addOwner(
-    @Param('id') id: string,
-    @Body('ownerId') ownerId: string,
-    @Request() req,
-  ) {
-    const business = await this.businessService.findById(id);
-    // Check if the user is an admin or the primary owner
-    const isAdmin = req.user.role?.id === RoleEnum.admin;
-    const isPrimaryOwner = business?.primaryOwner === req.user.id;
-    if (!isAdmin && !isPrimaryOwner) {
-      return {
-        statusCode: HttpStatus.FORBIDDEN,
-        message: 'Only administrators or the primary owner can add owners',
-      };
-    }
-    return this.businessService.addOwner(id, ownerId);
   }
 
   @ApiOperation({ summary: 'Get businesses owned by current user' })
@@ -181,28 +121,11 @@ export class BusinessController {
   @Get('user/me')
   @HttpCode(HttpStatus.OK)
   async getMyBusinesses(@Request() req) {
-    return this.businessService.findByOwnerId(req.user.id);
-  }
-
-  @ApiOperation({ summary: 'Get business by display name' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Business found',
-    type: Business,
-  })
-  @ApiParam({ name: 'displayName', description: 'Business display name' })
-  @Get('by-display-name/:displayName')
-  @HttpCode(HttpStatus.OK)
-  async findByDisplayName(@Param('displayName') displayName: string) {
-    const business = await this.businessService.findByDisplayName(displayName);
-    // Remove sensitive information for public view
-    if (business) {
-      const businessCopy = { ...business };
-      businessCopy.stripeAccountId = undefined;
-      businessCopy.stripeAccountStatus = undefined;
-      businessCopy.owners = [];
-      return businessCopy;
-    }
-    return business;
+    const businesses = await this.businessService.findByOwnerId(req.user.id);
+    // Return standardized format matching frontend expectations
+    return {
+      data: businesses,
+      hasNextPage: false,
+    };
   }
 }

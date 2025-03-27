@@ -23,7 +23,7 @@ export class CreateAccountLinkDto {
   })
   @IsString()
   @IsNotEmpty()
-  @IsUrl({ require_tld: false })
+  @IsUrl({ require_tld: false }) // Add require_tld: false option
   refreshUrl: string;
 
   @ApiProperty({
@@ -32,7 +32,7 @@ export class CreateAccountLinkDto {
   })
   @IsString()
   @IsNotEmpty()
-  @IsUrl({ require_tld: false })
+  @IsUrl({ require_tld: false }) // Add require_tld: false option
   returnUrl: string;
 
   @ApiPropertyOptional({

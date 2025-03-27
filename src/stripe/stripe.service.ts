@@ -72,7 +72,7 @@ export class StripeService {
     try {
       // If accountId is not provided but businessId is, use account ID from business
       let accountId = dto.accountId;
-      if (!accountId && businessId) {
+      if ((!accountId || accountId === '') && businessId) {
         accountId = await this.createConnectAccount(businessId);
       }
 
@@ -94,6 +94,35 @@ export class StripeService {
     } catch (error) {
       this.logger.error(
         `Error creating account link: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  async createAccountSession(
+    accountId: string,
+  ): Promise<{ clientSecret: string }> {
+    try {
+      // Ensure accountId is a string
+      if (typeof accountId !== 'string') {
+        this.logger.error(`Invalid accountId type: ${typeof accountId}`);
+        throw new Error('accountId must be a string');
+      }
+
+      const session = await this.stripe.accountSessions.create({
+        account: accountId,
+        components: {
+          account_onboarding: {
+            enabled: true,
+          },
+        },
+      });
+
+      return { clientSecret: session.client_secret };
+    } catch (error) {
+      this.logger.error(
+        `Error creating account session: ${error.message}`,
         error.stack,
       );
       throw error;

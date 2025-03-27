@@ -1,4 +1,3 @@
-// src/stripe/webhook/webhook.controller.ts
 import {
   Controller,
   HttpCode,
@@ -9,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
-import { WebhookService } from './webhook.service';
+import { StripeWebhookService } from './webhook.service';
 
 @ApiTags('Stripe')
 @Controller({
@@ -17,14 +16,13 @@ import { WebhookService } from './webhook.service';
   version: '1',
 })
 export class WebhookController {
-  constructor(private readonly webhookService: WebhookService) {}
+  constructor(private readonly webhookService: StripeWebhookService) {}
 
   @ApiExcludeEndpoint() // Don't show in Swagger docs
   @Post()
   @HttpCode(HttpStatus.OK)
   async handleWebhook(@Req() request: RawBodyRequest<Request>) {
     const signature = request.headers['stripe-signature'] as string;
-
     if (!signature) {
       return {
         statusCode: HttpStatus.BAD_REQUEST,
@@ -33,7 +31,6 @@ export class WebhookController {
     }
 
     const payload = request.rawBody;
-
     if (!payload) {
       return {
         statusCode: HttpStatus.BAD_REQUEST,
@@ -41,6 +38,6 @@ export class WebhookController {
       };
     }
 
-    return this.webhookService.handleWebhook(payload, signature);
+    return this.webhookService.handleWebhookEvent(signature, payload);
   }
 }

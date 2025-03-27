@@ -1,13 +1,15 @@
+// src/business/business.service.ts
+
 import { Injectable } from '@nestjs/common';
-import { IPaginationOptions } from '../utils/types/pagination-options';
-import { NullableType } from '../utils/types/nullable.type';
 import { Business } from './domain/business';
-import { CreateBusinessDto } from './dto/create-business.dto';
-import { QueryBusinessDto } from './dto/query-business.dto';
-import { UpdateBusinessDto } from './dto/update-business.dto';
 import { BusinessCreateService } from './services/business-create.service';
 import { BusinessReadService } from './services/business-read.service';
 import { BusinessUpdateService } from './services/business-update.service';
+import { IPaginationOptions } from '../utils/types/pagination-options';
+import { NullableType } from '../utils/types/nullable.type';
+import { CreateBusinessDto } from './dto/create-business.dto';
+import { QueryBusinessDto } from './dto/query-business.dto';
+import { UpdateBusinessDto } from './dto/update-business.dto';
 
 @Injectable()
 export class BusinessService {
@@ -82,7 +84,45 @@ export class BusinessService {
     return this.businessUpdateService.updateStripeAccount(
       id,
       stripeAccountId,
-      status,
+      status || {
+        onboardingComplete: false,
+        paymentsEnabled: false,
+        detailsSubmitted: false,
+        chargesEnabled: false,
+        payoutsEnabled: false,
+        requirementsDisabled: false,
+      },
+    );
+  }
+
+  async updateStripeConnectId(
+    businessId: string,
+    stripeConnectId: string,
+  ): Promise<Business> {
+    return this.businessUpdateService.updateStripeConnectId(
+      businessId,
+      stripeConnectId,
+    );
+  }
+
+  async updateStripeStatus(
+    businessId: string,
+    statusData: {
+      stripeConnectId: string;
+      stripeAccountStatus: {
+        chargesEnabled: boolean;
+        payoutsEnabled: boolean;
+        detailsSubmitted: boolean;
+        onboardingComplete: boolean;
+        currentlyDue?: string[];
+        eventuallyDue?: string[];
+        pastDue?: string[];
+      };
+    },
+  ): Promise<Business> {
+    return this.businessUpdateService.updateStripeStatus(
+      businessId,
+      statusData,
     );
   }
 }

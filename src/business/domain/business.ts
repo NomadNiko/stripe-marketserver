@@ -1,7 +1,35 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { FileType } from '../../files/domain/file';
-import { User } from '../../users/domain/user';
+
+export class StripeAccountStatus {
+  @ApiProperty({ example: true })
+  onboardingComplete: boolean;
+
+  @ApiProperty({ example: true })
+  paymentsEnabled: boolean;
+
+  @ApiProperty({ example: true })
+  detailsSubmitted: boolean;
+
+  @ApiProperty({ example: true })
+  chargesEnabled: boolean;
+
+  @ApiProperty({ example: true })
+  payoutsEnabled: boolean;
+
+  @ApiProperty({ example: false })
+  requirementsDisabled: boolean;
+
+  @ApiProperty({ type: [String] })
+  currentlyDue?: string[];
+
+  @ApiProperty({ type: [String] })
+  eventuallyDue?: string[];
+
+  @ApiProperty({ type: [String] })
+  pastDue?: string[];
+}
 
 export class Business {
   @ApiProperty({
@@ -38,25 +66,34 @@ export class Business {
 
   @ApiProperty({
     example: 'acct_1234567890',
-    description: 'The Stripe Connect account ID',
+    description: 'The Stripe account ID',
     required: false,
   })
   @Expose({ groups: ['admin', 'business'] })
   stripeAccountId?: string;
 
   @ApiProperty({
-    description: 'Stripe account status details',
+    example: 'acct_1234567890',
+    description: 'The Stripe Connect account ID',
     required: false,
   })
   @Expose({ groups: ['admin', 'business'] })
-  stripeAccountStatus?: {
-    onboardingComplete: boolean;
-    paymentsEnabled: boolean;
-    detailsSubmitted: boolean;
-    chargesEnabled: boolean;
-    payoutsEnabled: boolean;
-    requirementsDisabled: boolean;
-  };
+  stripeConnectId?: string;
+
+  @ApiProperty({
+    description: 'Stripe account status details',
+    required: false,
+    type: () => StripeAccountStatus,
+  })
+  @Expose({ groups: ['admin', 'business'] })
+  stripeAccountStatus?: StripeAccountStatus;
+
+  @ApiProperty({
+    example: false,
+    description: 'Whether Stripe setup is complete',
+  })
+  @Expose({ groups: ['admin', 'business'] })
+  isStripeSetupComplete?: boolean;
 
   @ApiProperty({
     description: 'List of users who have access to manage this business',
